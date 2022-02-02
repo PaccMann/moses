@@ -15,7 +15,8 @@ import os
 import keras.backend as K
 import numpy as np
 import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
+# set_session has been moved to keras.backend
+# from keras.backend.tensorflow_backend import set_session
 from keras.models import load_model
 from scipy import linalg
 
@@ -178,7 +179,7 @@ def get_predictions(smiles, gpu=-1, batch_size=128):
     config.gpu_options.allow_growth = True
     with tf.device(device):
         sess = tf.Session(config=config)
-        set_session(sess)
+        K(sess)
         K.clear_session()
         model = load_ref_model(model_path)
         smiles_act = model.predict_generator(

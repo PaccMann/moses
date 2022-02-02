@@ -127,7 +127,7 @@ class VAE(nn.Module):
 
         z_0 = z.unsqueeze(1).repeat(1, x_emb.size(1), 1)
         x_input = torch.cat([x_emb, z_0], dim=-1)
-        x_input = nn.utils.rnn.pack_padded_sequence(x_input, lengths,
+        x_input = nn.utils.rnn.pack_padded_sequence(x_input, lengths.cpu(),
                                                     batch_first=True)
 
         h_0 = self.decoder_lat(z)
@@ -195,7 +195,7 @@ class VAE(nn.Module):
                 y = F.softmax(y / temp, dim=-1)
 
                 w = torch.multinomial(y, 1)[:, 0]
-                x[~eos_mask, i] = w[~eos_mask]
+                x[~eos_mask.bool(), i] = w[~eos_mask.bool()]
                 i_eos_mask = ~eos_mask & (w == self.eos)
                 end_pads[i_eos_mask] = i + 1
                 eos_mask = eos_mask | i_eos_mask
