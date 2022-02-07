@@ -62,7 +62,7 @@ class Discriminator(nn.Module):
         for k, (i, o) in enumerate(zip(in_features, out_features)):
             self.layers_seq.add_module('linear_{}'.format(k), nn.Linear(i, o))
             if k != len(layers):
-                self.layers_seq.add_module('activation_{}'.format(k), nn.ELU(inplace=True))
+                self.layers_seq.add_module('activation_{}'.format(k), nn.ELU(inplace=False))
 
     def forward(self, x):
         return self.layers_seq(x)
