@@ -16,7 +16,7 @@ class Generator(nn.Module):
 
     def forward(self, x, lengths, states=None):
         x = self.embedding_layer(x)
-        x = pack_padded_sequence(x, lengths, batch_first=True)
+        x = pack_padded_sequence(x, lengths.cpu(), batch_first=True)
         x, states = self.lstm_layer(x, states)
         x, _ = pad_packed_sequence(x, batch_first=True)
         x = self.linear_layer(x)
@@ -110,7 +110,7 @@ class ORGAN(nn.Module):
 
                 currents[is_end, :] = self.vocabulary.pad
                 sequences.append(currents)
-                lengths[~is_end] += 1
+                lengths[~is_end.bool()] += 1
 
                 is_end[currents.view(-1) == self.vocabulary.eos] = 1
                 if is_end.sum() == n_sequences:
@@ -143,7 +143,7 @@ class ORGAN(nn.Module):
 
                 currents[is_end, :] = self.vocabulary.pad
                 sequences.append(currents)
-                lengths[~is_end] += 1
+                lengths[~is_end.bool()] += 1
 
                 rollout_prevs = currents[~is_end, :].repeat(n_rollouts, 1)
                 rollout_states = (states[0][:, ~is_end, :].repeat(1, n_rollouts, 1),
@@ -153,7 +153,7 @@ class ORGAN(nn.Module):
 
                 rollout_sequences = torch.cat([s[~is_end, :].repeat(n_rollouts, 1)
                                                for s in sequences] + [rollout_sequences], dim=-1)
-                rollout_lengths += lengths[~is_end].repeat(n_rollouts)
+                rollout_lengths += lengths[~is_end.bool()].repeat(n_rollouts)
 
                 rollout_rewards = torch.sigmoid(self.discriminator(rollout_sequences).detach())
 

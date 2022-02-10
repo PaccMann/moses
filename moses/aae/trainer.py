@@ -131,7 +131,8 @@ class AAETrainer:
             for scheduler in schedulers.values():
                 scheduler.step()
             log.append(self._train_epoch(model, tqdm_data, criterions, optimizers))
-            log.write(self.config.log_file)
+            # commenting out this line as there is no such function named 'write' in Logger in moses/utills.py
+            # log.write(self.config.log_file)
             if val_loader is not None:
                 tqdm_data = tqdm(val_loader, desc='Validation (epoch #{})'.format(epoch))
                 self._train_epoch(model, tqdm_data, criterions)

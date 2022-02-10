@@ -17,7 +17,7 @@ class Encoder(nn.Module):
         batch_size = x.shape[0]
 
         x = self.embedding_layer(x)
-        x = pack_padded_sequence(x, lengths, batch_first=True)
+        x = pack_padded_sequence(x, lengths.cpu(), batch_first=True)
         _, (_, x) = self.lstm_layer(x)
         x = x.permute(1, 2, 0).contiguous().view(batch_size, -1)
         x = self.linear_layer(x)
@@ -43,7 +43,7 @@ class Decoder(nn.Module):
             states = (h0, c0)
 
         x = self.embedding_layer(x)
-        x = pack_padded_sequence(x, lengths, batch_first=True)
+        x = pack_padded_sequence(x, lengths.cpu(), batch_first=True)
         x, states = self.lstm_layer(x, states)
         x, lengths = pad_packed_sequence(x, batch_first=True)
         x = self.linear_layer(x)
@@ -62,7 +62,7 @@ class Discriminator(nn.Module):
         for k, (i, o) in enumerate(zip(in_features, out_features)):
             self.layers_seq.add_module('linear_{}'.format(k), nn.Linear(i, o))
             if k != len(layers):
-                self.layers_seq.add_module('activation_{}'.format(k), nn.ELU(inplace=True))
+                self.layers_seq.add_module('activation_{}'.format(k), nn.ELU(inplace=False))
 
     def forward(self, x):
         return self.layers_seq(x)
@@ -133,7 +133,7 @@ class AAE(nn.Module):
 
                 currents[is_end, :] = self.vocabulary.pad
                 samples.append(currents.cpu())
-                lengths[~is_end] += 1
+                lengths[~is_end.bool()] += 1
 
                 prevs = currents
 
